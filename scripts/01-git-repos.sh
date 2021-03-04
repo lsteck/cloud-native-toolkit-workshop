@@ -12,6 +12,7 @@ TOOLKIT_GITOPS_PATH_QA=${TOOLKIT_GITOPS_PATH_QA:-qa}
 TOOLKIT_GITOPS_PATH_STAGING=${TOOLKIT_GITOPS_PATH_STAGING:-staging}
 PROJECT_COUNT=${PROJECT_COUNT:-15}
 PROJECT_PREFIX=${PROJECT_PREFIX:-project}
+RESET_REPOS=${RESET_REPOS:-"N"}
 GIT_CRED_USERNAME=${GIT_CRED_USERNAME:-toolkit}
 GIT_CRED_PASSWORD=${GIT_CRED_PASSWORD:-toolkit}
 GIT_GITOPS_URL="${GIT_PROTOCOL}://${GIT_CRED_USERNAME}:${GIT_CRED_PASSWORD}@${GIT_HOST}/${GIT_ORG}/${GIT_REPO}.git"
@@ -19,7 +20,7 @@ ACCESS_TOKEN=$(curl -s -u "${GIT_CRED_USERNAME}:${GIT_CRED_PASSWORD}" "${GIT_URL
 
 response=$(curl --write-out '%{http_code}' --silent --output /dev/null -H "Authorization: token ${ACCESS_TOKEN}" "${GIT_URL}/api/v1/repos/${GIT_ORG}/${GIT_REPO}")
 
-if [[ "${response}" != "200" ]]; then
+  if [[ "${response}" != "200"  ||  "${RESET_REPOS}" = "Y" ]]; then
 
 echo "creating gitops repo ${GIT_ORG}/${GIT_REPO}.git"
 curl -X POST -H "Authorization: token ${ACCESS_TOKEN}" -H "Content-Type: application/json" -d "{ \"name\": \"${GIT_REPO}\" }" "${GIT_URL}/api/v1/admin/users/${GIT_ORG}/repos"
@@ -70,7 +71,7 @@ echo "Edit [qa/value.yaml](./qa/value.yaml) or [staging/value.yaml](./staging/va
 git add .
 git commit -m "first commit"
 git remote add origin ${GIT_GITOPS_URL}
-git push -u origin master
+git push -u -f origin master
 
 popd
 
